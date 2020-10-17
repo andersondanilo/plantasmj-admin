@@ -14,11 +14,11 @@ import { IRootState, IRootAction } from './reducers/types';
 const authPersistConfig = {
   key: 'app_auth',
   storage: AsyncStorage,
-  whitelist: ['accessToken', 'refreshToken']
+  whitelist: ['accessToken', 'refreshToken'],
 };
 
 const rootReducer = combineReducers<IRootState>({
-  auth: persistReducer<IAuthState, IAuthAction>(authPersistConfig, authReducer)
+  auth: persistReducer<IAuthState, IAuthAction>(authPersistConfig, authReducer),
 });
 
 // const store = createStore(persistReducer<IRootState>(rootPersistConfig, rootReducer));
@@ -26,7 +26,4 @@ const store = createStore(rootReducer);
 
 const persistor = persistStore(store);
 
-export {
-  store,
-  persistor
-}
+export { store, persistor };

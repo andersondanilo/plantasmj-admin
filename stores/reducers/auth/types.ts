@@ -1,6 +1,6 @@
 export enum ActionType {
-  SetTokens = "AUTH_SET_TOKENS",
-  SetLogin = "AUTH_SET_LOGIN"
+  SetTokens = 'AUTH_SET_TOKENS',
+  SetLogin = 'AUTH_SET_LOGIN',
 }
 
 export interface IState {
@@ -16,9 +16,9 @@ export interface ISetTokensPayload {
 
 export type ISetLoginPayload = ISetTokensPayload & {
   accessTokenVerified: boolean;
-}
+};
 
 export interface IAction {
-  type: ActionType,
-  payload: ISetTokensPayload | ISetLoginPayload
+  type: ActionType;
+  payload: ISetTokensPayload | ISetLoginPayload;
 }

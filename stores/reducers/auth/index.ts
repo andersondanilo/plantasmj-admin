@@ -4,9 +4,9 @@ const defaultAuthState: IState = {
   accessTokenVerified: false,
   accessToken: null,
   refreshToken: null,
-}
+};
 
-export default function reducer (state = defaultAuthState, action: IAction): IState {
+export default function reducer(state = defaultAuthState, action: IAction): IState {
   const payload = action.payload;
 
   switch (action.type) {
@@ -14,16 +14,16 @@ export default function reducer (state = defaultAuthState, action: IAction): ISt
       return {
         ...state,
         accessToken: (payload as ISetTokensPayload).accessToken,
-        refreshToken: (payload as ISetTokensPayload).refreshToken
-      }
+        refreshToken: (payload as ISetTokensPayload).refreshToken,
+      };
     case ActionType.SetLogin:
       return {
         ...state,
         accessTokenVerified: (payload as ISetLoginPayload).accessTokenVerified,
         accessToken: (payload as ISetLoginPayload).accessToken,
-        refreshToken: (payload as ISetLoginPayload).refreshToken
-      }
+        refreshToken: (payload as ISetLoginPayload).refreshToken,
+      };
     default:
-      return state
+      return state;
   }
 }

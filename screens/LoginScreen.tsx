@@ -25,10 +25,10 @@ const LoginScreen = (props: IProps) => {
 
   const actionLogin = async () => {
     setTokens({
-      accessToken: (new Date).toString(),
-      refreshToken: ''
+      accessToken: new Date().toString(),
+      refreshToken: '',
     });
-    
+
     // setIsLoading(true);
 
     // try {
@@ -38,7 +38,7 @@ const LoginScreen = (props: IProps) => {
     //   setErrorMessage(parseErrorMessage(error));
     //   setIsLoading(false);
     // }
-  }
+  };
 
   return (
     <View style={styles.container}>
@@ -47,12 +47,7 @@ const LoginScreen = (props: IProps) => {
           <View style={styles.logoContainer}>
             <Image style={styles.logo} source={require('../assets/images/logo.png')} />
           </View>
-          <TextInput
-            style={styles.withMargin}
-            label="E-mail"
-            value={email}
-            onChangeText={setEmail}
-          />
+          <TextInput style={styles.withMargin} label="E-mail" value={email} onChangeText={setEmail} />
           <TextInput
             style={styles.withMargin}
             label="Senha"
@@ -60,17 +55,11 @@ const LoginScreen = (props: IProps) => {
             value={password}
             onChangeText={setPassword}
           />
-          <Paragraph>
-            My access token is {accessToken}
-          </Paragraph>
+          <Paragraph>My access token is {accessToken}</Paragraph>
           {isLoading ? (
             <ActivityIndicator animating={true} color={Colors.green800} />
           ) : (
-            <Button
-              mode="contained"
-              style={styles.withMargin}
-              onPress={actionLogin}
-            >
+            <Button mode="contained" style={styles.withMargin} onPress={actionLogin}>
               Entrar
             </Button>
           )}
@@ -79,20 +68,17 @@ const LoginScreen = (props: IProps) => {
       </Card>
     </View>
   );
-}
+};
 
 const mapStateToProps = (state: IRootState) => {
   return {
-    accessToken: state.auth.accessToken
-  }
+    accessToken: state.auth.accessToken,
+  };
 };
 
 const mapDispatchToProps = { setTokens };
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(LoginScreen);
+export default connect(mapStateToProps, mapDispatchToProps)(LoginScreen);
 
 const styles = StyleSheet.create({
   container: {
@@ -101,18 +87,18 @@ const styles = StyleSheet.create({
   },
   card: {
     maxWidth: 700,
-    margin: 'auto'
+    margin: 'auto',
   },
   logoContainer: {
-    alignItems: 'center'
+    alignItems: 'center',
   },
   logo: {
     height: 100,
     width: 300,
     margin: 10,
-    resizeMode: 'stretch'
+    resizeMode: 'stretch',
   },
   withMargin: {
-    margin: 10
-  }
-})
+    margin: 10,
+  },
+});

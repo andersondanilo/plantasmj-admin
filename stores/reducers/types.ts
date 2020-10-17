@@ -3,7 +3,6 @@ import { PersistPartial } from 'redux-persist/lib/persistReducer';
 
 export interface IRootState {
   auth: IAuthState & PersistPartial;
-};
+}
 
 export type IRootAction = IAuthAction;
-
