@@ -7,7 +7,7 @@ type IProps = ViewProps & {
   message: string | null;
 };
 
-export default function ErrorAlert(props: IProps) {
+export default function ErrorAlert(props: IProps): JSX.Element {
   const { message } = props;
 
   props = {

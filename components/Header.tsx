@@ -1,10 +1,9 @@
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
-import { createStackNavigator } from '@react-navigation/stack';
-import { Appbar, Avatar, useTheme } from 'react-native-paper';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { Appbar, useTheme } from 'react-native-paper';
 
-export default function Header({ scene, previous, navigation }: any) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any,@typescript-eslint/explicit-module-boundary-types
+export default function Header(props: any): JSX.Element {
+  const { scene, previous, navigation } = props;
   const { options } = scene.descriptor;
   const title =
     options.headerTitle !== undefined

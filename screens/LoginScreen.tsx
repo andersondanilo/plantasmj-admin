@@ -1,43 +1,28 @@
 import React, { useState } from 'react';
 import { View, Image } from 'react-native';
-import { Button, Card, Title, TextInput } from 'react-native-paper';
+import { Button, Card, TextInput } from 'react-native-paper';
 import { StyleSheet } from 'react-native';
-import { login } from '../services/api';
-import { parseErrorMessage } from '../services/utils';
-import { ActivityIndicator, Colors, Paragraph } from 'react-native-paper';
+import { login } from '../services/AuthService';
+import { parseErrorMessage } from '../services/UtilsService';
+import { ActivityIndicator, Colors } from 'react-native-paper';
 import ErrorAlert from '../components/ErrorAlert';
-import { connect } from 'react-redux';
-import { IRootState } from '../stores/reducers/types';
-import { setTokens } from '../stores/reducers/auth/actionCreators';
 
-interface IProps {
-  setTokens: typeof setTokens;
-  accessToken: string | null;
-}
-
-const LoginScreen = (props: IProps) => {
-  const { setTokens, accessToken } = props;
-
+const LoginScreen = (): JSX.Element => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const actionLogin = async () => {
-    setTokens({
-      accessToken: new Date().toString(),
-      refreshToken: '',
-    });
+    setIsLoading(true);
+    setErrorMessage(null);
 
-    // setIsLoading(true);
-
-    // try {
-    //   const result = await login(email, password);
-    //   console.log('success response => ', result);
-    // } catch (error) {
-    //   setErrorMessage(parseErrorMessage(error));
-    //   setIsLoading(false);
-    // }
+    try {
+      await login(email, password);
+    } catch (error) {
+      setErrorMessage(parseErrorMessage(error));
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -55,7 +40,6 @@ const LoginScreen = (props: IProps) => {
             value={password}
             onChangeText={setPassword}
           />
-          <Paragraph>My access token is {accessToken}</Paragraph>
           {isLoading ? (
             <ActivityIndicator animating={true} color={Colors.green800} />
           ) : (
@@ -69,16 +53,6 @@ const LoginScreen = (props: IProps) => {
     </View>
   );
 };
-
-const mapStateToProps = (state: IRootState) => {
-  return {
-    accessToken: state.auth.accessToken,
-  };
-};
-
-const mapDispatchToProps = { setTokens };
-
-export default connect(mapStateToProps, mapDispatchToProps)(LoginScreen);
 
 const styles = StyleSheet.create({
   container: {
@@ -102,3 +76,5 @@ const styles = StyleSheet.create({
     margin: 10,
   },
 });
+
+export default LoginScreen;

@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-community/async-storage';
 import { persistReducer, persistStore } from 'redux-persist';
 import authReducer from './reducers/auth';
 import { IState as IAuthState, IAction as IAuthAction } from './reducers/auth/types';
-import { IRootState, IRootAction } from './reducers/types';
+import { IRootState } from './reducers/types';
 
 // const rootPersistConfig = {
 //   key: 'app_root',
