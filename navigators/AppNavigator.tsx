@@ -1,19 +1,21 @@
 import React, { ReactElement, useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
+import { useTheme } from 'react-native-paper';
 import LoadingScreen from '../screens/LoadingScreen';
 import LoginScreen from '../screens/LoginScreen';
 import DashboardScreen from '../screens/DashboardScreen';
-import Header from '../components/Header';
+import CategoryIndexScreen from '../screens/Category/IndexScreen';
 import { IRootState } from '../stores/reducers/types';
 import { connect } from 'react-redux';
 import { validateCurrentAccessToken } from '../services/AuthService';
+import { RootStackParamList } from './types';
 
-const Stack = createStackNavigator();
+const Stack = createStackNavigator<RootStackParamList>();
 
 interface IProps {
-  accessToken: string;
-  accessTokenVerified: string;
+  accessToken?: string;
+  accessTokenVerified?: string;
 }
 
 type LoginState = 'verifying' | 'guest' | 'logged';
@@ -21,6 +23,7 @@ type LoginState = 'verifying' | 'guest' | 'logged';
 const AppNavigator = (props: IProps): ReactElement => {
   const { accessToken, accessTokenVerified } = props;
   const [loginState, setLoginState] = useState<LoginState>(accessToken ? 'verifying' : 'guest');
+  const theme = useTheme();
 
   useEffect(() => {
     (async () => {
@@ -42,28 +45,35 @@ const AppNavigator = (props: IProps): ReactElement => {
     }
   }, [accessTokenVerified]);
 
-  let initialRouteName = 'Loading';
-
-  if (loginState === 'guest') {
-    initialRouteName = 'Login';
-  } else if (loginState === 'logged') {
-    initialRouteName = 'Dashboard';
-  }
-
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName={initialRouteName}
+        initialRouteName="Dashboard"
         headerMode="screen"
         screenOptions={{
-          header: Header,
+          headerStyle: {
+            backgroundColor: theme.colors.primary,
+          },
+          headerTintColor: '#fff',
+          headerTitleStyle: {
+            fontWeight: 'bold',
+          },
         }}
       >
         {loginState === 'verifying' && (
           <Stack.Screen name="Loading" component={LoadingScreen} options={LoadingScreen.navigationOptions} />
         )}
         {loginState === 'guest' && <Stack.Screen name="Login" component={LoginScreen} />}
-        {loginState === 'logged' && <Stack.Screen name="Dashboard" component={DashboardScreen} />}
+        {loginState === 'logged' && (
+          <React.Fragment>
+            <Stack.Screen name="Dashboard" component={DashboardScreen} />
+            <Stack.Screen
+              name="CategoryIndex"
+              component={CategoryIndexScreen}
+              options={CategoryIndexScreen.navigationOptions}
+            />
+          </React.Fragment>
+        )}
       </Stack.Navigator>
     </NavigationContainer>
   );
