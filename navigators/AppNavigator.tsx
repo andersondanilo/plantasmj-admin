@@ -7,20 +7,29 @@ import LoginScreen from '../screens/LoginScreen';
 import DashboardScreen from '../screens/DashboardScreen';
 import CategoryIndexScreen from '../screens/Category/IndexScreen';
 import { IRootState } from '../stores/reducers/types';
-import { connect } from 'react-redux';
+import { connect, ConnectedProps } from 'react-redux';
 import { validateCurrentAccessToken } from '../services/AuthService';
 import { RootStackParamList } from './types';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
-interface IProps {
-  accessToken?: string;
-  accessTokenVerified?: string;
-}
+const mapStateToProps = (state: IRootState) => {
+  return {
+    accessToken: state.auth.accessToken,
+    accessTokenVerified: state.auth.accessTokenVerified,
+  };
+};
+
+const connector = connect(mapStateToProps, null);
+
+type PropsFromRedux = ConnectedProps<typeof connector>;
+
+// type Props = PropsFromRedux & {};
+type Props = PropsFromRedux;
 
 type LoginState = 'verifying' | 'guest' | 'logged';
 
-const AppNavigator = (props: IProps): ReactElement => {
+const AppNavigator = (props: Props): ReactElement => {
   const { accessToken, accessTokenVerified } = props;
   const [loginState, setLoginState] = useState<LoginState>(accessToken ? 'verifying' : 'guest');
   const theme = useTheme();
@@ -79,11 +88,4 @@ const AppNavigator = (props: IProps): ReactElement => {
   );
 };
 
-const mapStateToProps = (state: IRootState) => {
-  return {
-    accessToken: state.auth.accessToken,
-    accessTokenVerified: state.auth.accessTokenVerified,
-  };
-};
-
-export default connect(mapStateToProps, null)(AppNavigator);
+export default connector(AppNavigator);

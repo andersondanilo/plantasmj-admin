@@ -1,8 +1,9 @@
 import params from '../configs/parameters';
 import axios, { AxiosResponse, AxiosRequestConfig } from 'axios';
 import { store } from '../stores/main';
-import { deserialize } from 'jsonapi-fractal';
+import { serialize, deserialize } from 'jsonapi-fractal';
 import { ILoginResponse, ILoginResult, OAuthTokenRequest, IUser } from './types';
+import { ICategory } from '../stores/reducers/data/types';
 import { setLogin } from '../stores/reducers/auth/actionCreators';
 
 export function oauthToken(params: OAuthTokenRequest): Promise<ILoginResult> {
@@ -16,6 +17,24 @@ export function oauthToken(params: OAuthTokenRequest): Promise<ILoginResult> {
 
 export async function getCurrentUser(): Promise<IUser> {
   return deserialize((await call('GET', '/users/current')).data);
+}
+
+export async function listCategories(): Promise<Array<ICategory>> {
+  return deserialize((await call('GET', '/product-categories')).data);
+}
+
+export async function createCategory(attributes: Partial<ICategory>): Promise<ICategory> {
+  const requestData = serialize(attributes, 'product-categories', {});
+  return deserialize((await call('POST', '/product-categories', requestData)).data);
+}
+
+export async function updateCategory(id: string, attributes: Partial<ICategory>): Promise<ICategory> {
+  const requestData = serialize(attributes, 'product-categories', {});
+  return deserialize((await call('PATCH', '/product-categories/' + id, requestData)).data);
+}
+
+export async function removeCategory(id: string): Promise<void> {
+  await call('DELETE', '/product-categories/' + id);
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

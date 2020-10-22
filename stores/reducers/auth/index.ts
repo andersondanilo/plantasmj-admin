@@ -1,12 +1,12 @@
 import { IState, IAction, ActionType, ISetTokensPayload, ISetLoginPayload } from './types';
 
-const defaultAuthState: IState = {
+const defaultState: IState = {
   accessTokenVerified: false,
   accessToken: null,
   refreshToken: null,
 };
 
-export default function reducer(state = defaultAuthState, action: IAction): IState {
+export default function reducer(state = defaultState, action: IAction): IState {
   const payload = action.payload;
 
   switch (action.type) {

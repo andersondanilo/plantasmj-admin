@@ -2,14 +2,9 @@ import { createStore, combineReducers } from 'redux';
 import AsyncStorage from '@react-native-community/async-storage';
 import { persistReducer, persistStore } from 'redux-persist';
 import authReducer from './reducers/auth';
+import dataReducer from './reducers/data';
 import { IState as IAuthState, IAction as IAuthAction } from './reducers/auth/types';
 import { IRootState } from './reducers/types';
-
-// const rootPersistConfig = {
-//   key: 'app_root',
-//   storage: AsyncStorage,
-//   whitelist: ['']
-// }
 
 const authPersistConfig = {
   key: 'app_auth',
@@ -19,9 +14,9 @@ const authPersistConfig = {
 
 const rootReducer = combineReducers<IRootState>({
   auth: persistReducer<IAuthState, IAuthAction>(authPersistConfig, authReducer),
+  data: dataReducer,
 });
 
-// const store = createStore(persistReducer<IRootState>(rootPersistConfig, rootReducer));
 const store = createStore(rootReducer);
 
 const persistor = persistStore(store);
