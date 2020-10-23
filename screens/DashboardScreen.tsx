@@ -11,16 +11,26 @@ interface IProps {
 }
 
 const DashboardScreen = ({ navigation }: IProps): ReactElement => {
-  const onCategoryAction = () => {
-    navigation.push('CategoryIndex');
-  };
-
   return (
     <View style={styles.container}>
-      <Button style={styles.button} icon="alpha-c-box" mode="contained" onPress={onCategoryAction}>
+      <Button
+        style={styles.button}
+        icon="alpha-c-box"
+        mode="contained"
+        onPress={() => {
+          navigation.push('CategoryIndex');
+        }}
+      >
         Categorias
       </Button>
-      <Button style={styles.button} icon="alpha-p-box" mode="contained">
+      <Button
+        style={styles.button}
+        icon="alpha-p-box"
+        mode="contained"
+        onPress={() => {
+          navigation.push('ProductCategories');
+        }}
+      >
         Produtos
       </Button>
     </View>

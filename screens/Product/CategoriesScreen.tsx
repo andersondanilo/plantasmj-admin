@@ -1,15 +1,16 @@
 import React, { ReactElement, useEffect, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { IRootState } from '../../stores/reducers/types';
 import { ICategory } from '../../stores/reducers/data/types';
 import { setCategoriesById } from '../../stores/reducers/data/actionCreators';
 import { connect, ConnectedProps } from 'react-redux';
 import { listCategories } from '../../services/ApiService';
 import { ActivityIndicator, Colors, List, Text, Divider } from 'react-native-paper';
-import AddButton from './AddButton';
-import FormDialog from './FormDialog';
 import { getOrderedCategories } from '../../stores/selectors';
 import { indexCategoriesById } from '../../stores/utils';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '../../navigators/types';
 
 const mapStateToProps = (state: IRootState) => {
   return {
@@ -21,14 +22,16 @@ const mapDispatchToProps = { setCategoriesById };
 
 const connector = connect(mapStateToProps, mapDispatchToProps);
 
+type NavigationProp = StackNavigationProp<RootStackParamList, 'ProductCategories'>;
+
 type PropsFromRedux = ConnectedProps<typeof connector>;
 
 type Props = PropsFromRedux;
 
-const IndexScreen = (props: Props): ReactElement => {
+const CategoriesScreen = (props: Props): ReactElement => {
   const { orderedCategories, setCategoriesById } = props;
   const [loading, setLoading] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<ICategory | null>(null);
+  const navigation = useNavigation<NavigationProp>();
 
   useEffect(() => {
     listCategories()
@@ -43,6 +46,12 @@ const IndexScreen = (props: Props): ReactElement => {
       });
   }, []);
 
+  const onPressCategory = (category: ICategory): void => {
+    navigation.navigate('ProductIndex', {
+      category: category,
+    });
+  };
+
   return (
     <View style={styles.container}>
       {loading && <ActivityIndicator animating={true} color={Colors.green800} />}
@@ -53,21 +62,17 @@ const IndexScreen = (props: Props): ReactElement => {
             style={styles.listItem}
             title={category.name}
             left={(props) => <List.Icon {...props} icon="format-list-bulleted" />}
-            onPress={() => setSelectedCategory(category)}
+            onPress={() => onPressCategory(category)}
           />
           <Divider style={styles.listItem} />
         </React.Fragment>
       ))}
-      <AddButton />
-      {selectedCategory && (
-        <FormDialog category={selectedCategory} visible={true} onDismiss={() => setSelectedCategory(null)} />
-      )}
     </View>
   );
 };
 
-IndexScreen.navigationOptions = {
-  headerTitle: 'Categorias',
+CategoriesScreen.navigationOptions = {
+  headerTitle: 'Selecione a categoria',
 };
 
 const styles = StyleSheet.create({
@@ -82,4 +87,4 @@ const styles = StyleSheet.create({
   headerIcon: {},
 });
 
-export default connector(IndexScreen);
+export default connector(CategoriesScreen);

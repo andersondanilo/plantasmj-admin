@@ -6,6 +6,8 @@ import LoadingScreen from '../screens/LoadingScreen';
 import LoginScreen from '../screens/LoginScreen';
 import DashboardScreen from '../screens/DashboardScreen';
 import CategoryIndexScreen from '../screens/Category/IndexScreen';
+import ProductCategoriesScreen from '../screens/Product/CategoriesScreen';
+import ProductIndexScreen from '../screens/Product/IndexScreen';
 import { IRootState } from '../stores/reducers/types';
 import { connect, ConnectedProps } from 'react-redux';
 import { validateCurrentAccessToken } from '../services/AuthService';
@@ -80,6 +82,16 @@ const AppNavigator = (props: Props): ReactElement => {
               name="CategoryIndex"
               component={CategoryIndexScreen}
               options={CategoryIndexScreen.navigationOptions}
+            />
+            <Stack.Screen
+              name="ProductCategories"
+              component={ProductCategoriesScreen}
+              options={ProductCategoriesScreen.navigationOptions}
+            />
+            <Stack.Screen
+              name="ProductIndex"
+              component={ProductIndexScreen}
+              options={ProductIndexScreen.navigationOptions}
             />
           </React.Fragment>
         )}

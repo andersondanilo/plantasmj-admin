@@ -3,7 +3,7 @@ import axios, { AxiosResponse, AxiosRequestConfig } from 'axios';
 import { store } from '../stores/main';
 import { serialize, deserialize } from 'jsonapi-fractal';
 import { ILoginResponse, ILoginResult, OAuthTokenRequest, IUser } from './types';
-import { ICategory } from '../stores/reducers/data/types';
+import { ICategory, IProduct } from '../stores/reducers/data/types';
 import { setLogin } from '../stores/reducers/auth/actionCreators';
 
 export function oauthToken(params: OAuthTokenRequest): Promise<ILoginResult> {
@@ -35,6 +35,24 @@ export async function updateCategory(id: string, attributes: Partial<ICategory>)
 
 export async function removeCategory(id: string): Promise<void> {
   await call('DELETE', '/product-categories/' + id);
+}
+
+export async function listProducts(categoryId: string): Promise<Array<IProduct>> {
+  return deserialize((await call('GET', `/product-categories/${categoryId}/products`)).data);
+}
+
+export async function createProduct(categoryId: string, attributes: Partial<IProduct>): Promise<IProduct> {
+  const requestData = serialize(attributes, 'products', {});
+  return deserialize((await call('POST', `/product-categories/${categoryId}/products`, requestData)).data);
+}
+
+export async function updateProduct(categoryId: string, id: string, attributes: Partial<IProduct>): Promise<IProduct> {
+  const requestData = serialize(attributes, 'products', {});
+  return deserialize((await call('PATCH', `/product-categories/${categoryId}/products/${id}`, requestData)).data);
+}
+
+export async function removeProduct(categoryId: string, id: string): Promise<void> {
+  await call('DELETE', `/product-categories/${categoryId}/products/${id}`);
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
