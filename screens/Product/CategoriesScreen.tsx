@@ -1,5 +1,5 @@
 import React, { ReactElement, useEffect, useState } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, FlatList } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { IRootState } from '../../stores/reducers/types';
 import { ICategory } from '../../stores/reducers/data/types';
@@ -56,17 +56,22 @@ const CategoriesScreen = (props: Props): ReactElement => {
     <View style={styles.container}>
       {loading && <ActivityIndicator animating={true} color={Colors.green800} />}
       {orderedCategories.length == 0 && <Text>Nenhuma categoria cadastrada</Text>}
-      {orderedCategories.map((category: ICategory) => (
-        <React.Fragment key={category.id}>
-          <List.Item
-            style={styles.listItem}
-            title={category.name}
-            left={(props) => <List.Icon {...props} icon="format-list-bulleted" />}
-            onPress={() => onPressCategory(category)}
-          />
-          <Divider style={styles.listItem} />
-        </React.Fragment>
-      ))}
+      <FlatList
+        data={orderedCategories}
+        renderItem={({ item: category }) => {
+          return (
+            <React.Fragment key={category.id}>
+              <List.Item
+                style={styles.listItem}
+                title={category.name}
+                left={(props) => <List.Icon {...props} icon="format-list-bulleted" />}
+                onPress={() => onPressCategory(category)}
+              />
+              <Divider />
+            </React.Fragment>
+          );
+        }}
+      />
     </View>
   );
 };
@@ -79,10 +84,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 10,
-    alignItems: 'center',
+    justifyContent: 'center',
   },
   listItem: {
-    width: '100%',
+    flex: 1,
+    flexDirection: 'column',
   },
   headerIcon: {},
 });

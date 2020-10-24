@@ -1,12 +1,16 @@
-import React, { ReactElement, useState } from 'react';
+import React, { ReactElement, useState, useEffect, useMemo } from 'react';
 import { Platform, StyleSheet } from 'react-native';
 import { Button, Dialog, Portal, Text, TextInput, Colors } from 'react-native-paper';
 import { replaceProduct, removeProduct as dataRemoveProduct } from '../../stores/reducers/data/actionCreators';
 import { createProduct, updateProduct, removeProduct as apiRemoveProduct } from '../../services/ApiService';
 import { parseErrorMessage } from '../../services/UtilsService';
+import { IFormDataFile } from '../../services/types';
 import ErrorAlert from '../../components/ErrorAlert';
 import { connect, ConnectedProps } from 'react-redux';
 import { ICategory, IProduct } from '../../stores/reducers/data/types';
+import * as ImagePicker from 'expo-image-picker';
+import '../../typings/react-native-mime-types/index.d.ts';
+import * as mime from 'react-native-mime-types';
 
 const mapDispatchToProps = { replaceProduct, dataRemoveProduct };
 
@@ -26,6 +30,67 @@ const FormDialog = (props: Props): ReactElement => {
   const [name, setName] = useState(product ? product.name : '');
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [imageUri, setImageUri] = useState<string | null>(null);
+
+  const image = useMemo<IFormDataFile | null>(() => {
+    let name: string | null = null;
+    let type: string | null = null;
+
+    if (!imageUri) {
+      return null;
+    }
+
+    if (/data:image/.test(imageUri)) {
+      const match = imageUri.match(/data:(image\/(.+?));/);
+      if (match) {
+        type = match[1];
+        name = 'imagem.' + mime.extension(type);
+      } else {
+        name = 'ERRO!';
+      }
+    } else {
+      name = imageUri.split(new RegExp('\\\\|/')).pop() || null;
+      type = mime.lookup(name || '') || null;
+    }
+
+    return {
+      uri: imageUri,
+      name: name || '',
+      type: type || '',
+    };
+  }, [imageUri]);
+
+  const imageButtonLabel = useMemo(() => {
+    if (image) {
+      return image.name;
+    } else {
+      return 'Selecione uma imagem';
+    }
+  }, [image]);
+
+  useEffect(() => {
+    (async () => {
+      if (Platform.OS !== 'web') {
+        const { status } = await ImagePicker.requestCameraRollPermissionsAsync();
+        if (status !== 'granted') {
+          setErrorMessage('É necessário permitir o acesso a imagens');
+        }
+      }
+    })();
+  }, []);
+
+  const pickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsEditing: false,
+      base64: false,
+      exif: false,
+    });
+
+    if (!result.cancelled) {
+      setImageUri(result.uri);
+    }
+  };
 
   const onSaveAction = async () => {
     setLoading(true);
@@ -38,8 +103,8 @@ const FormDialog = (props: Props): ReactElement => {
 
     try {
       const newEntity: IProduct = product
-        ? await updateProduct(category.id, product.id, { name })
-        : await createProduct(category.id, { name });
+        ? await updateProduct(category.id, product.id, { name }, image)
+        : await createProduct(category.id, { name }, image);
 
       replaceProduct({ categoryId: category.id, product: newEntity });
       setName('');
@@ -82,6 +147,9 @@ const FormDialog = (props: Props): ReactElement => {
         <Dialog.Content>
           <TextInput style={styles.withMargin} label="Nome" value={name} onChangeText={setName} />
           {errorMessage && <ErrorAlert style={styles.withMargin} message={errorMessage} />}
+          <Button onPress={pickImage} mode="contained" color={Colors.blue800}>
+            {imageButtonLabel}
+          </Button>
         </Dialog.Content>
         <Dialog.Actions>
           {category && (

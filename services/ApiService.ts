@@ -1,13 +1,22 @@
+import { Platform } from 'react-native';
 import params from '../configs/parameters';
-import axios, { AxiosResponse, AxiosRequestConfig } from 'axios';
 import { store } from '../stores/main';
 import { serialize, deserialize } from 'jsonapi-fractal';
-import { ILoginResponse, ILoginResult, OAuthTokenRequest, IUser } from './types';
+import {
+  ILoginResponse,
+  ILoginResult,
+  OAuthTokenRequest,
+  IUser,
+  IFormDataFile,
+  HTTPResponse,
+  HTTPError,
+} from './types';
 import { ICategory, IProduct } from '../stores/reducers/data/types';
 import { setLogin } from '../stores/reducers/auth/actionCreators';
+import { dataURIToBlob } from './UtilsService';
 
 export function oauthToken(params: OAuthTokenRequest): Promise<ILoginResult> {
-  return call('POST', '/oauth/token', params).then((response: AxiosResponse<ILoginResponse>) => {
+  return call('POST', '/oauth/token', params).then((response: HTTPResponse<ILoginResponse>) => {
     return {
       accessToken: response.data.access_token,
       refreshToken: response.data.refresh_token,
@@ -41,14 +50,43 @@ export async function listProducts(categoryId: string): Promise<Array<IProduct>>
   return deserialize((await call('GET', `/product-categories/${categoryId}/products`)).data);
 }
 
-export async function createProduct(categoryId: string, attributes: Partial<IProduct>): Promise<IProduct> {
-  const requestData = serialize(attributes, 'products', {});
+export async function createProduct(
+  categoryId: string,
+  attributes: Partial<IProduct>,
+  image: IFormDataFile | null,
+): Promise<IProduct> {
+  const requestData = buildProductRequestData(attributes, image);
   return deserialize((await call('POST', `/product-categories/${categoryId}/products`, requestData)).data);
 }
 
-export async function updateProduct(categoryId: string, id: string, attributes: Partial<IProduct>): Promise<IProduct> {
-  const requestData = serialize(attributes, 'products', {});
+export async function updateProduct(
+  categoryId: string,
+  id: string,
+  attributes: Partial<IProduct>,
+  image: IFormDataFile | null,
+): Promise<IProduct> {
+  const requestData = buildProductRequestData(attributes, image);
   return deserialize((await call('PATCH', `/product-categories/${categoryId}/products/${id}`, requestData)).data);
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function buildProductRequestData(attributes: Partial<IProduct>, image: IFormDataFile | null): any {
+  const json = serialize(attributes, 'products', {});
+
+  if (image) {
+    const formData = new FormData();
+    formData.append('json', JSON.stringify(json));
+
+    if (Platform.OS === 'web') {
+      formData.append('image', dataURIToBlob(image.uri), image.name);
+    } else {
+      formData.append('image', image);
+    }
+
+    return formData;
+  } else {
+    return json;
+  }
 }
 
 export async function removeProduct(categoryId: string, id: string): Promise<void> {
@@ -56,11 +94,9 @@ export async function removeProduct(categoryId: string, id: string): Promise<voi
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function call<T = any>(method: string, path: string, body: any = null, tries = 0): Promise<AxiosResponse<T>> {
+async function call<T = any>(method: string, path: string, body: any = null, tries = 0): Promise<HTTPResponse<T>> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const headers: any = {
-    'Content-Type': 'application/json',
-  };
+  const headers: any = {};
 
   const accessToken = store.getState().auth.accessToken;
   const refreshToken = store.getState().auth.refreshToken;
@@ -69,13 +105,49 @@ async function call<T = any>(method: string, path: string, body: any = null, tri
     headers.Authorization = 'Bearer ' + accessToken;
   }
 
+  let requestData = body;
+
+  if (typeof requestData !== 'string') {
+    if (!(requestData instanceof FormData)) {
+      requestData = JSON.stringify(requestData);
+      headers['Content-Type'] = 'application/json';
+    }
+  }
+
+  if (method != 'POST' && method != 'PATCH') {
+    requestData = null;
+  }
+
   try {
-    return await axios({
+    const fetchResponse = await fetch(params.apiUrl + path, {
       method: method,
-      url: params.apiUrl + path,
-      data: JSON.stringify(body),
+      body: requestData,
       headers,
-    } as AxiosRequestConfig);
+    });
+
+    let jsonBody = null;
+
+    try {
+      jsonBody = await fetchResponse.json();
+    } catch {
+      jsonBody = null;
+    }
+
+    if (fetchResponse.status >= 300) {
+      const error = new HTTPError();
+
+      error.response = {
+        status: fetchResponse.status,
+        data: jsonBody,
+      };
+
+      throw error;
+    }
+
+    return {
+      status: fetchResponse.status,
+      data: jsonBody,
+    };
   } catch (error) {
     if (error.response && error.response.status == 401 && tries < 1 && refreshToken) {
       try {
