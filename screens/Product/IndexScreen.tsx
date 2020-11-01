@@ -1,17 +1,18 @@
-import React, { ReactElement, useEffect, useState } from 'react';
+import React, { ReactElement, useEffect, useState, useMemo, useCallback } from 'react';
 import { View, StyleSheet, FlatList, Dimensions, Image } from 'react-native';
 import { IRootState } from '../../stores/reducers/types';
 import { IProduct } from '../../stores/reducers/data/types';
 import { setProductsById } from '../../stores/reducers/data/actionCreators';
 import { connect, ConnectedProps } from 'react-redux';
 import { listProducts } from '../../services/ApiService';
-import { ActivityIndicator, Colors, Button, Text, Card } from 'react-native-paper';
+import { ActivityIndicator, Colors, Button, Text, Card, Searchbar } from 'react-native-paper';
 import AddButton from './AddButton';
 import FormDialog from './FormDialog';
 import { RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '../../navigators/types';
 import { getOrderedProductsFactory } from '../../stores/selectors';
 import { indexProductsById } from '../../stores/utils';
+import { filter, debounce } from 'lodash';
 
 type ComponentRouteProp = RouteProp<RootStackParamList, 'ProductIndex'>;
 
@@ -43,9 +44,16 @@ const IndexScreen = (props: Props): ReactElement => {
   const { category } = route.params;
   const [loading, setLoading] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<IProduct | null>(null);
-
+  const [searchQuery, setSearchQuery] = React.useState('');
+  const [appliedSearchQuery, setAppliedSearchQuery] = React.useState('');
   const win = Dimensions.get('window');
   const numberOfColumns = Math.trunc(win.width / (cardMaxWidth + cardMargin * 2));
+
+  const filteredProducts = useMemo<Array<IProduct>>(() => {
+    const re = new RegExp(appliedSearchQuery.replace(/ /g, '.+'), 'i');
+
+    return filter(orderedProducts, (product: IProduct) => re.test(product.name));
+  }, [orderedProducts, appliedSearchQuery]);
 
   useEffect(() => {
     listProducts(category.id)
@@ -61,13 +69,25 @@ const IndexScreen = (props: Props): ReactElement => {
       });
   }, []);
 
+  const onChangeAppliedSearch = useCallback(
+    debounce((text: string) => {
+      setAppliedSearchQuery(text);
+    }, 1000),
+    [setAppliedSearchQuery],
+  );
+
+  useEffect(() => {
+    onChangeAppliedSearch(searchQuery);
+  }, [searchQuery]);
+
   return (
     <View style={styles.container}>
       <AddButton category={category} />
-      {loading && <ActivityIndicator animating={true} color={Colors.green800} />}
-      {orderedProducts.length == 0 && <Text>Nenhum produto nesta categoria</Text>}
+      {loading && <ActivityIndicator style={styles.withMargin} animating={true} color={Colors.green800} />}
+      <Searchbar style={styles.withMargin} placeholder="Filtrar" onChangeText={setSearchQuery} value={searchQuery} />
+      {orderedProducts.length == 0 && <Text style={styles.withMargin}>Nenhum produto nesta categoria</Text>}
       <FlatList
-        data={orderedProducts}
+        data={filteredProducts}
         renderItem={({ item }) => {
           return (
             <View key={item.id} style={styles.itemContainer}>
@@ -106,7 +126,9 @@ IndexScreen.navigationOptions = (props: PropsWithRoute) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 10,
+  },
+  withMargin: {
+    margin: 10,
   },
   itemContainer: {
     margin: 'auto',

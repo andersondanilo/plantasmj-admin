@@ -1,6 +1,6 @@
 import React, { ReactElement, useState } from 'react';
 import { StyleSheet } from 'react-native';
-import { FAB } from 'react-native-paper';
+import { FAB, Portal } from 'react-native-paper';
 import { ICategory } from '../../stores/reducers/data/types';
 import FormDialog from './FormDialog';
 
@@ -13,10 +13,10 @@ const AddButton = (props: Props): ReactElement => {
   const [showDialog, setShowDialog] = useState(false);
 
   return (
-    <React.Fragment>
+    <Portal>
       <FAB style={styles.fab} icon="plus" onPress={() => setShowDialog(true)} />
       <FormDialog category={category} visible={showDialog} onDismiss={() => setShowDialog(false)} />
-    </React.Fragment>
+    </Portal>
   );
 };
 
